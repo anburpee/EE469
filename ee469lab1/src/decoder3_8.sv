@@ -10,11 +10,11 @@ module decoder3_8(y, x, en);
     input logic en;
     logic x2_n, x2, en0, en1, delayed_en;
 
-    not (x2_n, x[2]);
+    not #0.05 n0 (x2_n, x[2]);
 
     // all three inputs defined simultaneously
-    and (en0, x2_n, en); 
-    and (en1, x[2], en);
+    and #0.05 a0 (en0, x2_n, en); 
+    and #0.05 a1 (en1, x[2], en);
 
     decoder2_4 dec0 (.y(y[3:0]), .x(x[1:0]), .en(en0));
     decoder2_4 dec1 (.y(y[7:4]), .x(x[1:0]), .en(en1));

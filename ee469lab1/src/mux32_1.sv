@@ -34,9 +34,9 @@ module mux32_1_tb();
 
         for (i=0; i<INPUT_SIZE; i++) begin
             sel = i;
-            x = 0;
-            x[i] = 1'b1; #(100);
-            x = 0; #(2000);
+            x[i] = 1'b1; #(100); // drive the selected input high for 100 time units
+                                 // expected behavior: after a time delay, output should go high for the same amout of time the input was high for
+            x = 0; #(2000); // set everything back to zero
         end
         
         $stop;

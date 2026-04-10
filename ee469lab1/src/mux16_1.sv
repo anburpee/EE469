@@ -31,6 +31,7 @@ module mux16_1_tb();
     mux16_1 dut (.*);
 
     // stimulus
+    // long-ass testbench
     integer i, j;
     initial begin
         #(100);
