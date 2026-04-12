@@ -20,17 +20,22 @@ module alu (A, B, cntrl, result, negative, zero, overflow, carry_out);
 	output logic	[63:0]	result;
 	output logic			negative, zero, overflow, carry_out;
     logic           [63:0]  adder_out;
+    logic                   adder_cout, adder_overflow;
 
-    adder64 adder (.A(A), .B(B), .initial_Cin(cntrl[0]), .sum(adder_out), .Cout(carry_out), .overflow(overflow));
+    adder64 adder (.A(A), .B(B), .initial_Cin(cntrl[0]), .sum(adder_out), .Cout(adder_cout), .overflow(adder_overflow));
 
+    // carry_out and overflow flags only valid when computation is addition or subtraction (cntrl == 010, 011)
+    and #(0.05) (carry_out, adder_cout, !cntrl[2], cntrl[1]);
+    and #(0.05) (overflow, adder_overflow, !cntrl[2], cntrl[1]);
 
     genvar i;
     generate
+        logic [63:0] and_out, or_out, xor_out;
         for (i=0; i<64; i++) begin: mux_block
-            and #(0.05) (and_out, A[i], B[i]);
-            or  #(0.05) (or_out,  A[i], B[i]);
-            xor #(0.05) (xor_out, A[i], B[i]);
-            mux8_1 mux8 (.y(result[i]), .x({xor_out, 1'bZ, or_out, and_out, adder_out[i], adder_out[i], 1'bZ, B[i]}), .sel(cntrl));
+            and #(0.05) (and_out[i], A[i], B[i]);
+            or  #(0.05) (or_out[i],  A[i], B[i]);
+            xor #(0.05) (xor_out[i], A[i], B[i]);
+            mux8_1 mux8 (.y(result[i]), .x({1'b0, xor_out[i], or_out[i], and_out[i], adder_out[i], adder_out[i], 1'b0, B[i]}), .sel(cntrl));
         end
     endgenerate
 
@@ -41,17 +46,17 @@ module alu (A, B, cntrl, result, negative, zero, overflow, carry_out);
     genvar j, k;
     generate
         logic [15:0] nor_out;
-        logic [3:0]  and_out;
+        logic [3:0]  and_out1;
 
         for (k=0; k<16; k++) begin // generate sixteen 4-input NOR gates (takes in all 64 bits of result)
-                nor #(0.05) (nor_out[k], result[k], result[k+1], result[k+2], result[k+3]);
+                nor #(0.05) (nor_out[k], result[4*k], result[4*k+1], result[4*k+2], result[4*k+3]);
             end
 
         for (j=0; j<4; j++) begin: zero_flag_gates
-            and #(0.05) (and_out[j], nor_out[j], nor_out[j+1], nor_out[j+2], nor_out[j+3]);
+            and #(0.05) (and_out1[j], nor_out[4*j], nor_out[4*j+1], nor_out[4*j+2], nor_out[4*j+3]);
         end
 
-        and #(0.05) (zero, and_out[0], and_out[1], and_out[2], and_out[3]); // top of tree
+        and #(0.05) (zero, and_out1[0], and_out1[1], and_out1[2], and_out1[3]); // top of tree
 
     endgenerate
 
