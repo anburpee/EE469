@@ -35,6 +35,7 @@ module alu (A, B, cntrl, result, negative, zero, overflow, carry_out);
             and #(0.05) (and_out[i], A[i], B[i]);
             or  #(0.05) (or_out[i],  A[i], B[i]);
             xor #(0.05) (xor_out[i], A[i], B[i]);
+            //                              111   110         101        100         011           010           001   000
             mux8_1 mux8 (.y(result[i]), .x({1'b0, xor_out[i], or_out[i], and_out[i], adder_out[i], adder_out[i], 1'b0, B[i]}), .sel(cntrl));
         end
     endgenerate

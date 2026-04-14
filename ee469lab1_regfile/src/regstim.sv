@@ -80,7 +80,7 @@ module regstim();
 		// RegWrite off
 		$display("%t Write and read to the same registers at the same time", $time);
 		for (i=0; i<32; i=i+1) begin
-			RegWrite <= 1;
+			RegWrite <= 0;
 			ReadRegister1 <= i;
 			ReadRegister2 <= i;
 			WriteRegister <= i;

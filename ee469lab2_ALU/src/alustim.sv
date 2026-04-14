@@ -68,6 +68,24 @@ module alustim();
 				   negative == result[63] && 
 				   zero == (result == 0));
 		end
+		// addition overflow testing (since $random() is only 32 bits)
+		A = 64'h7FFFFFFFFFFFFFFF; B = 64'h1;
+		untruncated_sum = {1'b0, A} + {1'b0, B};
+		#(delay);
+		assert(result == A + B && 
+			   carry_out == (untruncated_sum[64]) && 
+			   overflow == ((A[63] == B[63]) && (result[63] != A[63])) && 
+			   negative == result[63] && 
+			   zero == (result == 0));
+		// addition carry-out testing (since $random() is only 32 bits)
+		A = 64'hFFFFFFFFFFFFFFFF; B = 64'h1;
+		untruncated_sum = {1'b0, A} + {1'b0, B};
+		#(delay);
+		assert(result == A + B && 
+			   carry_out == (untruncated_sum[64]) && 
+			   overflow == ((A[63] == B[63]) && (result[63] != A[63])) && 
+			   negative == result[63] && 
+			   zero == (result == 0));
 
 		// subtraction
 		$display("%t testing subtraction", $time);
@@ -82,6 +100,24 @@ module alustim();
 				   negative == result[63] && 
 				   zero == (result == 0));
 		end
+		// subtraction overflow testing (since $random() is only 32 bits)
+		A = 64'h7FFFFFFFFFFFFFFF; B = 64'hFFFFFFFFFFFFFFFF;
+		untruncated_sum = {1'b0, A} + {1'b0, ~B} + 1;
+		#(delay);
+		assert(result == A - B && 
+			   carry_out == (untruncated_sum[64]) && 
+			   overflow == ((A[63] != B[63]) && (result[63] != A[63])) && 
+			   negative == result[63] && 
+			   zero == (result == 0));
+		// subtraction carry-out testing (since $random() is only 32 bits)
+		A = 64'h7FFFFFFFFFFFFFFF; B = 64'h0;
+		untruncated_sum = {1'b0, A} + {1'b0, ~B} + 1;
+		#(delay);
+		assert(result == A - B && 
+			   carry_out == (untruncated_sum[64]) && 
+			   overflow == ((A[63] != B[63]) && (result[63] != A[63])) && 
+			   negative == result[63] && 
+			   zero == (result == 0));
 
 		// bitwise AND
 		$display("%t testing bitwise AND", $time);
