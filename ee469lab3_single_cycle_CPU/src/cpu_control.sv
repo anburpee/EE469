@@ -1,16 +1,17 @@
-module cpu_control (opcode, Reg2Loc, Uncondbranch, Branch, MemRead, MemtoReg, ALUOp, MemWrite, ALUSrc, RegWrite, Br2Reg, CBZ);
+module cpu_control (opcode, Reg2Loc, UncondBranch, Branch, MemRead, MemtoReg, 
+                    ALUOp, MemWrite, ALUSrc, RegWrite, SetFlags, IType, Br2Reg, CBZ);
 
     input logic [10:0] opcode;
-    output logic Reg2Loc, Uncondbranch, Branch, MemRead, MemtoReg, MemWrite, ALUSrc, RegWrite, SetFlags, Br2Reg, CBZ;
+    output logic Reg2Loc, UncondBranch, Branch, MemRead, MemtoReg, MemWrite, ALUSrc, RegWrite, SetFlags, IType, Br2Reg, CBZ;
     output logic [2:0] ALUOp;
 
     always_comb begin
         // default
-        {Reg2Loc, Uncondbranch, Branch, MemRead, MemtoReg, ALUOp, MemWrite, ALUSrc, RegWrite, SetFlags, Br2Reg, CBZ} = 13'b0;
+        {Reg2Loc, UncondBranch, Branch, MemRead, MemtoReg, ALUOp, MemWrite, ALUSrc, RegWrite, SetFlags, IType, Br2Reg, CBZ} = 13'b0;
 
         casez(opcode) 
             11'b1001000100?: begin // ADDI
-                RegWrite = 1'b1; ALUOp = 3'b010;
+                RegWrite = 1'b1; ALUSrc = 1'b1; ALUOp = 3'b010;
             end
             11'b10101011000: begin // ADDS
                 RegWrite = 1'b1; SetFlags = 1'b1; ALUOp = 3'b010;
@@ -37,7 +38,7 @@ module cpu_control (opcode, Reg2Loc, Uncondbranch, Branch, MemRead, MemtoReg, AL
                 Reg2Loc = 1'b1; MemWrite = 1'b1; ALUSrc = 1'b1; ALUOp = 1'b010;
             end
             11'b11101011000: begin // SUBS
-                RegWrite = 1'b1; SetFlags = 1'b1; ALUOp = 3'b011
+                RegWrite = 1'b1; SetFlags = 1'b1; ALUOp = 3'b011;
             end
         endcase
 
