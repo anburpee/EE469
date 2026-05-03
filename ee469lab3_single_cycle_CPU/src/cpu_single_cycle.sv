@@ -1,19 +1,32 @@
 `timescale 1ps/1ps
 module cpu_single_cycle (clk, reset);
     input logic clk, reset;
-    logic [63:0] pc_out, pc_plus4, shifter_out, br_adder_out, brAddr_mux_out, pc_mux_out1, pc_mux_out2; // pc
+
+    // PC signals ----------------
+    logic [63:0] pc_out, pc_plus4, shifter_out, br_adder_out, brAddr_mux_out, pc_mux_out1, pc_mux_out2; 
+
+    // instructmem signals -------
     logic [31:0] instruction;
-    logic [4:0]  rd_addr2, wr_addr_reg; // regfile
-    logic [63:0] rd_data1, rd_data2, wr_data_reg; // regfile
+
+    // regfile signals -----------
+    logic [4:0]  rd_addr2, wr_addr_reg;
+    logic [63:0] rd_data1, rd_data2, wr_data_reg;
+
+    // ALU signals ---------------
     logic [63:0] alu_B, alu_out, datamem_out, alu_datamem_mux_out;
-    logic neg_flag, zero_flag, overflow_flag, cout_flag; // flags
+    logic neg_flag, zero_flag, overflow_flag, cout_flag;
+
+    // flagreg signals -----------
     logic [3:0]  flag_reg_out;
-    logic [63:0] condAddr19_extended, brAddr26_extended, imm12_extended, dAddr9_extended, extended_imm; // sign extension output
+
+    // sign extension signals-----
+    logic [63:0] condAddr19_extended, brAddr26_extended, imm12_extended, dAddr9_extended, extended_imm;
+
+    // mux sel signals -----------
     logic neg_xor_overflow, cbz_and_zero, not_cbz, blt_and_lt, pc_mux1_sel; // mux select for pc_mux1
     logic rdAddr2_sel; // mux select for regfile rdAddr2 
 
-
-    // control signals
+    // control signals -----------
     logic Reg2Loc, UncondBranch, MemRead, MemtoReg, MemWrite, ALUSrc, RegWrite, SetFlags, IType, Br2Reg, isBLT, isCBZ;
     logic [2:0] ALUOp; 
 
@@ -60,6 +73,7 @@ module cpu_single_cycle (clk, reset);
     sign_extender #(9, 64) dAddr9 (.x(instruction[20:12]), .y(dAddr9_extended));
     sign_extender #(12, 64) imm12 (.x(instruction[21:10]), .y(imm12_extended));
 
+
     // ----------------- ALU ------------------------------------------------------------------------------
     mux64x2_1 imm_mux (.y(extended_imm), .x({imm12_extended, dAddr9_extended}), .sel(IType)); // mux (0=dAddr9_extended, 1=Imm12_extended) for ALU mux input
     mux64x2_1 alu_mux (.y(alu_B), .x({extended_imm, rd_data2}), .sel(ALUSrc)); // mux (1=exteded(imm), 0=ReadData2) for B-port of the ALU
@@ -72,7 +86,7 @@ module cpu_single_cycle (clk, reset);
                                        .data_in({neg_flag, zero_flag, overflow_flag, cout_flag}), .data_out(flag_reg_out));
     // ----------------------------------------------------------------------------------------------------
 
-    //                                                                          1'b1?
+    //                                                                          1'b1 should also be fine
     datamem datamem (.address(alu_out), .write_enable(MemWrite), .read_enable(MemtoReg), .write_data(rd_data2),
                      .clk(clk), .xfer_size(4'd8), .read_data(datamem_out));
 
@@ -108,7 +122,7 @@ module cpu_single_cycle_tb();
         reset <= 1; @(posedge clk);
         reset <= 0;
 
-        
+        // -----------For debugging: look at contents after every clock cycle -------------
         // $display("regfile contents: %p", dut.reg_file.reg_out); // regfile debug
         // for (i=0; i<NUM_INSTRUCTIONS; i++) begin
         //     $display("instruction: %b", dut.instruction);
@@ -128,6 +142,8 @@ module cpu_single_cycle_tb();
         //     $display("");
         //     @(posedge clk);
         // end
+
+        // -----------Just look at the contents at the end---------------------------------
         repeat(1000) @(posedge clk);
         $display("instruction: %b", dut.instruction);
         $display("regfile contents:");
@@ -143,7 +159,7 @@ module cpu_single_cycle_tb();
         foreach(dut.datamem.mem[i]) begin;
             $write("%0d  ", $signed(dut.datamem.mem[i]));
         end
-        $display("");
+
         repeat(5) @(posedge clk);
         $stop;
     end
