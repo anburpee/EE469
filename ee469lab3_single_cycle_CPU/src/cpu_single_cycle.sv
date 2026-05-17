@@ -71,7 +71,7 @@ module cpu_single_cycle (clk, reset);
 
 
     sign_extender #(9, 64) dAddr9 (.x(instruction[20:12]), .y(dAddr9_extended));
-    sign_extender #(12, 64) imm12 (.x(instruction[21:10]), .y(imm12_extended));
+    zero_extender #(12, 64) imm12 (.x(instruction[21:10]), .y(imm12_extended));
 
 
     // ----------------- ALU ------------------------------------------------------------------------------
