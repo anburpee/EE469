@@ -177,45 +177,45 @@ module cpu_pipelined_tb();
         reset <= 0;
 
         // -----------For debugging: look at contents after every clock cycle -------------
-        // $display("regfile contents: %p", dut.reg_file.reg_out); // regfile debug
-        // for (i=0; i<NUM_INSTRUCTIONS; i++) begin
-        //     $display("instruction: %b", dut.instruction);
-        //     $display("regfile contents:");
-        //     foreach(dut.reg_file.reg_out[i]) begin // for each 64-bit register
-        //         $write("%0d  ", $signed(dut.reg_file.reg_out[i])); // $write doesn't include \n at the end
-        //     end
+        $display("regfile contents: %p", dut.reg_file.reg_out); // regfile debug
+        for (i=0; i<NUM_INSTRUCTIONS; i++) begin
+            $display("instruction: %b", dut.instruction);
+            $display("regfile contents:");
+            foreach(dut.reg_file.reg_out[i]) begin // for each 64-bit register
+                $write("%0d  ", $signed(dut.reg_file.reg_out[i])); // $write doesn't include \n at the end
+            end
 
-        //     $display("\nflag register contents:");
-        //     $display("negative: %b, zero: %b, overflow: %b, carry-out: %d",
-        //             dut.flag_reg.data_in[3], dut.flag_reg.data_in[2], dut.flag_reg.data_in[1], dut.flag_reg.data_in[0]);
+            $display("\nflag register contents:");
+            $display("negative: %b, zero: %b, overflow: %b, carry-out: %d",
+                    dut.flag_reg.data_in[3], dut.flag_reg.data_in[2], dut.flag_reg.data_in[1], dut.flag_reg.data_in[0]);
 
-        //     $display("datamem contents:");
-        //     foreach(dut.datamem.mem[i]) begin;
-        //         $write("%0d  ", $signed(dut.datamem.mem[i]));
-        //     end
-        //     $display("");
-        //     @(posedge clk);
-        // end
+            $display("datamem contents:");
+            foreach(dut.datamem.mem[i]) begin;
+                $write("%0d  ", $signed(dut.datamem.mem[i]));
+            end
+            $display("");
+            @(posedge clk);
+        end
 
         // -----------Just look at the contents at the end---------------------------------
-        repeat(1000) @(posedge clk);
-        $display("instruction: %b", dut.instruction);
-        $display("regfile contents:");
-        foreach(dut.reg_file.reg_out[i]) begin // for each 64-bit register
-            $write("%0d  ", $signed(dut.reg_file.reg_out[i])); // $write doesn't include \n at the end
-        end
+        // repeat(1000) @(posedge clk);
+        // $display("instruction: %b", dut.instruction);
+        // $display("regfile contents:");
+        // foreach(dut.reg_file.reg_out[i]) begin // for each 64-bit register
+        //     $write("%0d  ", $signed(dut.reg_file.reg_out[i])); // $write doesn't include \n at the end
+        // end
 
-        $display("\nflag register contents:");
-        $display("negative: %b, zero: %b, overflow: %b, carry-out: %d",
-                dut.flag_reg.data_in[3], dut.flag_reg.data_in[2], dut.flag_reg.data_in[1], dut.flag_reg.data_in[0]);
+        // $display("\nflag register contents:");
+        // $display("negative: %b, zero: %b, overflow: %b, carry-out: %d",
+        //         dut.flag_reg.data_in[3], dut.flag_reg.data_in[2], dut.flag_reg.data_in[1], dut.flag_reg.data_in[0]);
 
-        $display("datamem contents:");
-        foreach(dut.datamem.mem[i]) begin;
-            $write("%0d  ", $signed(dut.datamem.mem[i]));
-        end
+        // $display("datamem contents:");
+        // foreach(dut.datamem.mem[i]) begin;
+        //     $write("%0d  ", $signed(dut.datamem.mem[i]));
+        // end
 
-        repeat(5) @(posedge clk);
-        $stop;
+        // repeat(5) @(posedge clk);
+        // $stop;
     end
 
 endmodule
