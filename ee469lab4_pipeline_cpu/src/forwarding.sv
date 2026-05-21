@@ -1,10 +1,10 @@
 // Forwarding unit for write-use hazards, load-use hazards, and write-store hazards
 module alu_forwarding (EX_MEM_RegWrite, MEM_WB_RegWrite, EX_MEM_Rd, MEM_WB_Rd, ID_EX_Rn, ID_EX_Rm, ID_EX_RnUsed, ID_EX_RmUsed,
-                       MEM_WB_LoadUseRn, MEM_WB_LoadUseRm, ID_EX_Rd, ID_EX_MemWrite, EX_MEM_MemRead, MEM_WB_MemRead, 
+                       MEM_WB_LoadUseRn, MEM_WB_LoadUseRm, ID_EX_Rd, ID_EX_MemWrite, EX_MEM_MemRead,
                        forwardA, forwardB, forwardStore);
 
-input logic EX_MEM_RegWrite, MEM_WB_RegWrite, ID_EX_RnUsed, ID_EX_RmUsed, ID_EX_isIType, MEM_WB_LoadUseRn, MEM_WB_LoadUseRm;
-input logic ID_EX_MemWrite, EX_MEM_MemRead, MEM_WB_MemRead;
+input logic EX_MEM_RegWrite, MEM_WB_RegWrite, ID_EX_RnUsed, ID_EX_RmUsed, MEM_WB_LoadUseRn, MEM_WB_LoadUseRm;
+input logic ID_EX_MemWrite, EX_MEM_MemRead;
 input logic [4:0] EX_MEM_Rd, MEM_WB_Rd, ID_EX_Rn, ID_EX_Rm;
 input logic [4:0] ID_EX_Rd;
 
@@ -63,7 +63,7 @@ always_comb begin
                 forwardStore = 2'b10;
             end
         end
-        else if ((MEM_WB_RegWrite || MEM_WB_MemRead) && (ID_EX_Rd == MEM_WB_Rd)) begin
+        else if ((MEM_WB_RegWrite) && (ID_EX_Rd == MEM_WB_Rd)) begin
             forwardStore = 2'b01;
         end
     end
@@ -73,9 +73,9 @@ endmodule
 
 
 // Forwarding unit for write-BR hazards
-module BR_forwarding (IF_ID_Br2Reg, ID_EX_RegWrite, EX_MEM_RegWrite, IF_ID_Rd, ID_EX_Rd, EX_MEM_Rd, forwardR_Rd);
+module BR_forwarding (Br2Reg, ID_EX_RegWrite, EX_MEM_RegWrite, IF_ID_Rd, ID_EX_Rd, EX_MEM_Rd, forwardR_Rd);
 
-input logic IF_ID_Br2Reg, ID_EX_RegWrite, EX_MEM_RegWrite;
+input logic Br2Reg, ID_EX_RegWrite, EX_MEM_RegWrite;
 input logic [4:0] IF_ID_Rd, ID_EX_Rd, EX_MEM_Rd;
 
 // 00 = default (no forwarding)
@@ -87,7 +87,7 @@ output logic [1:0] forwardR_Rd;
 always_comb begin
     forwardR_Rd = 2'b00;
 
-    if (IF_ID_Br2Reg && (IF_ID_Rd != 5'd31)) begin
+    if (Br2Reg && (IF_ID_Rd != 5'd31)) begin
         if (ID_EX_RegWrite && (IF_ID_Rd == ID_EX_Rd)) begin
             forwardR_Rd = 2'b01;
         end
@@ -97,15 +97,3 @@ always_comb begin
     end
 end
 endmodule
-
-
-
-// // for write-store hazards
-//     if (ID_EX_MemWrite && (ID_EX_Rd != 5'd31)) begin
-//         if (EX_MEM_RegWrite && (ID_EX_Rd == EX_MEM_Rd)) begin
-//             forwardStore = 2'b10;
-//         end
-//         else if (MEM_WB_RegWrite && (ID_EX_Rd == MEM_WB_Rd)) begin
-//             forwardStore = 2'b01;
-//         end
-//     end

@@ -27,7 +27,7 @@ module cpu_control (opcode, is_zero, is_lt, Reg2Loc, UncondBranch, MemRead, Memt
                 UncondBranch = 1'b1; RegWrite = 1'b1;
             end
             11'b11010110000: begin // BR
-                Br2Reg = 1'b1; Reg2Loc = 1'b1; isRType = 1'b1;
+                Br2Reg = 1'b1; Reg2Loc = 1'b1;
             end
             11'b10110100???: begin // CBZ
                 isCBZ = 1'b1; // use default ALUOp: pass B to evaluate zero flag

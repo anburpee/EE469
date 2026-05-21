@@ -28,17 +28,17 @@ module ID_EX_reg (clk, reset, wren, readData1, readData2, extended_imm, IF_ID_Rn
     output logic [1:0] ID_EX_hds;  // {ID_EX_RmUsed, ID_EX_RnUsed}
 
 
-    n_bit_register #(64) (.clk(clk), .reset(reset), .en(wren), .data_in(readData1), .data_out(ID_EX_readData1));
-    n_bit_register #(64) (.clk(clk), .reset(reset), .en(wren), .data_in(readData2), .data_out(ID_EX_readData2));
-    n_bit_register #(64) (.clk(clk), .reset(reset), .en(wren), .data_in(extended_imm), .data_out(ID_EX_extended_imm));
+    n_bit_register #(64) reg0 (.clk(clk), .reset(reset), .en(wren), .data_in(readData1), .data_out(ID_EX_readData1));
+    n_bit_register #(64) reg1 (.clk(clk), .reset(reset), .en(wren), .data_in(readData2), .data_out(ID_EX_readData2));
+    n_bit_register #(64) reg2 (.clk(clk), .reset(reset), .en(wren), .data_in(extended_imm), .data_out(ID_EX_extended_imm));
 
-    n_bit_register #(5) (.clk(clk), .reset(reset), .en(wren), .data_in(IF_ID_Rn), .data_out(ID_EX_Rn));
-    n_bit_register #(5) (.clk(clk), .reset(reset), .en(wren), .data_in(IF_ID_Rm), .data_out(ID_EX_Rm));
-    n_bit_register #(5) (.clk(clk), .reset(reset), .en(wren), .data_in(IF_ID_Rd), .data_out(ID_EX_Rd));
+    n_bit_register #(5)  reg3 (.clk(clk), .reset(reset), .en(wren), .data_in(IF_ID_Rn), .data_out(ID_EX_Rn));
+    n_bit_register #(5)  reg4 (.clk(clk), .reset(reset), .en(wren), .data_in(IF_ID_Rm), .data_out(ID_EX_Rm));
+    n_bit_register #(5)  reg5 (.clk(clk), .reset(reset), .en(wren), .data_in(IF_ID_Rd), .data_out(ID_EX_Rd));
 
-    n_bit_register #(3)  (.clk(clk), .reset(reset), .en(wren), .data_in(wb), .data_out(ID_EX_wb));
-    n_bit_register #(2)  (.clk(clk), .reset(reset), .en(wren), .data_in(mem), .data_out(ID_EX_mem));
-    n_bit_register #(5)  (.clk(clk), .reset(reset), .en(wren), .data_in(ex), .data_out(ID_EX_ex));
-    n_bit_register #(2)  (.clk(clk), .reset(reset), .en(wren), .data_in(hds), .data_out(ID_EX_hds));
+    n_bit_register #(3)  reg6 (.clk(clk), .reset(reset), .en(wren), .data_in(wb), .data_out(ID_EX_wb));
+    n_bit_register #(2)  reg7 (.clk(clk), .reset(reset), .en(wren), .data_in(mem), .data_out(ID_EX_mem));
+    n_bit_register #(5)  reg8 (.clk(clk), .reset(reset), .en(wren), .data_in(ex), .data_out(ID_EX_ex));
+    n_bit_register #(2)  reg9 (.clk(clk), .reset(reset), .en(wren), .data_in(hds), .data_out(ID_EX_hds));
 
 endmodule

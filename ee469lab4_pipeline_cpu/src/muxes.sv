@@ -225,3 +225,112 @@ module muxnx4_1 #(parameter N=64) (y, x, sel);
         end
     endgenerate
 endmodule
+
+
+
+module muxnx2_1_tb();
+
+    parameter N = 64;
+
+    logic [N*2-1:0] x;
+    logic sel;
+    logic [N-1:0] y;
+
+    // DUT
+    muxnx2_1 #(N) dut (
+        .y(y),
+        .x(x),
+        .sel(sel)
+    );
+
+    initial begin
+
+        // -------------------------------
+        // Test 1: sel = 0
+        // -------------------------------
+        sel = 1'b0;
+        x = {
+                64'hAAAAAAAAAAAAAAAA,   // upper input
+                64'h1111111111111111    // lower input
+            };
+
+        #10;
+
+        $display("TEST 1");
+        $display("sel = %b", sel);
+        $display("y   = %h", y);
+
+        // Expected:
+        // y = 1111111111111111
+
+
+        // -------------------------------
+        // Test 2: sel = 1
+        // -------------------------------
+        sel = 1'b1;
+
+        #10;
+
+        $display("TEST 2");
+        $display("sel = %b", sel);
+        $display("y   = %h", y);
+
+        // Expected:
+        // y = AAAAAAAAAAAAAAAA
+
+
+        // -------------------------------
+        // Test 3: unknown upper input
+        // demonstrates X propagation
+        // -------------------------------
+        sel = 1'b0;
+        x = {
+                64'hXXXXXXXXXXXXXXXX,
+                64'h123456789ABCDEF0
+            };
+
+        #10;
+
+        $display("TEST 3");
+        $display("sel = %b", sel);
+        $display("y   = %h", y);
+
+        // With gate-level muxes:
+        // y may become X
+
+
+        // -------------------------------
+        // Test 4: unknown lower input
+        // -------------------------------
+        sel = 1'b1;
+        x = {
+                64'hCAFEBABECAFEBABE,
+                64'hXXXXXXXXXXXXXXXX
+            };
+
+        #10;
+
+        $display("TEST 4");
+        $display("sel = %b", sel);
+        $display("y   = %h", y);
+
+        // Expected:
+        // y may become X
+
+
+        // -------------------------------
+        // Test 5: all zeros
+        // -------------------------------
+        sel = 1'b0;
+        x = 128'd0;
+
+        #10;
+
+        $display("TEST 5");
+        $display("sel = %b", sel);
+        $display("y   = %h", y);
+
+        $stop;
+    end
+
+endmodule

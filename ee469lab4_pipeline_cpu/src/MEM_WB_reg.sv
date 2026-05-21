@@ -14,11 +14,11 @@ module MEM_WB_reg (clk, reset, wren, EX_MEM_alu_result, EX_MEM_Rd, datamem_out, 
     output logic [2:0] MEM_WB_wb;
     output logic MEM_WB_LoadUseRn, MEM_WB_LoadUseRm;
 
-    n_bit_register #(64) (.clk(clk), .reset(reset), .en(wren), .data_in(EX_MEM_alu_result), .data_out(MEM_WB_alu_result));
-    n_bit_register #(5)  (.clk(clk), .reset(reset), .en(wren), .data_in(EX_MEM_Rd), .data_out(MEM_WB_Rd));
-    n_bit_register #(64) (.clk(clk), .reset(reset), .en(wren), .data_in(datamem_out), .data_out(MEM_WB_datamem_out));
-    n_bit_register #(3)  (.clk(clk), .reset(reset), .en(wren), .data_in(EX_MEM_wb), .data_out(MEM_WB_wb));
-    n_bit_register #(1)  (.clk(clk), .reset(reset), .en(wren), .data_in(EX_MEM_LoadUseRn), .data_out(MEM_WB_LoadUseRn));
-    n_bit_register #(1)  (.clk(clk), .reset(reset), .en(wren), .data_in(EX_MEM_LoadUseRm), .data_out(MEM_WB_LoadUseRm));
+    n_bit_register #(64) reg0 (.clk(clk), .reset(reset), .en(wren), .data_in(EX_MEM_alu_result), .data_out(MEM_WB_alu_result));
+    n_bit_register #(5)  reg1 (.clk(clk), .reset(reset), .en(wren), .data_in(EX_MEM_Rd), .data_out(MEM_WB_Rd));
+    n_bit_register #(64) reg2 (.clk(clk), .reset(reset), .en(wren), .data_in(datamem_out), .data_out(MEM_WB_datamem_out));
+    n_bit_register #(3)  reg3 (.clk(clk), .reset(reset), .en(wren), .data_in(EX_MEM_wb), .data_out(MEM_WB_wb));
+    n_bit_register #(1)  reg4 (.clk(clk), .reset(reset), .en(wren), .data_in(EX_MEM_LoadUseRn), .data_out(MEM_WB_LoadUseRn));
+    n_bit_register #(1)  reg5 (.clk(clk), .reset(reset), .en(wren), .data_in(EX_MEM_LoadUseRm), .data_out(MEM_WB_LoadUseRm));
 
 endmodule
