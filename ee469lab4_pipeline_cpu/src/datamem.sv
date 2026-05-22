@@ -7,8 +7,8 @@
 `timescale 1ns/10ps
 
 // How many bytes are in our memory?  Must be a power of two.
-`define DATA_MEM_SIZE		1024
-// `define DATA_MEM_SIZE		128 // for testbenching
+// `define DATA_MEM_SIZE		1024
+`define DATA_MEM_SIZE		128 // for testbenching
 	
 module datamem (
 	input logic		[63:0]	address,

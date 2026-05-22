@@ -1,14 +1,15 @@
-module EX_MEM_reg (clk, reset, wren, alu_result, alu_B, ID_EX_Rd, ID_EX_wb, ID_EX_mem, LoadUseRn, LoadUseRm,  
-                   EX_MEM_alu_result, EX_MEM_mem_wrData, EX_MEM_Rd, EX_MEM_wb, EX_MEM_mem, EX_MEM_LoadUseRn, EX_MEM_LoadUseRm);
+`timescale 1ps/1ps
+module EX_MEM_reg (clk, reset, wren, alu_result, alu_B, ID_EX_Rd, ID_EX_wb, ID_EX_mem, LoadUseRn, LoadUseRm, ID_EX_pc_plus4,
+                   EX_MEM_alu_result, EX_MEM_mem_wrData, EX_MEM_Rd, EX_MEM_wb, EX_MEM_mem, EX_MEM_LoadUseRn, EX_MEM_LoadUseRm, EX_MEM_pc_plus4);
     
     input logic clk, reset, wren;
-    input logic [63:0] alu_result, alu_B;
+    input logic [63:0] alu_result, alu_B, ID_EX_pc_plus4;
     input logic [4:0] ID_EX_Rd;
     input logic [2:0] ID_EX_wb; 
     input logic [1:0] ID_EX_mem;
     input logic LoadUseRn, LoadUseRm;
 
-    output logic [63:0] EX_MEM_alu_result, EX_MEM_mem_wrData;
+    output logic [63:0] EX_MEM_alu_result, EX_MEM_mem_wrData, EX_MEM_pc_plus4;
     output logic [4:0] EX_MEM_Rd;
     output logic [2:0] EX_MEM_wb;
     output logic [1:0] EX_MEM_mem;
@@ -21,5 +22,6 @@ module EX_MEM_reg (clk, reset, wren, alu_result, alu_B, ID_EX_Rd, ID_EX_wb, ID_E
     n_bit_register #(2)  reg4 (.clk(clk), .reset(reset), .en(wren), .data_in(ID_EX_mem), .data_out(EX_MEM_mem));
     n_bit_register #(1)  reg5 (.clk(clk), .reset(reset), .en(wren), .data_in(LoadUseRn), .data_out(EX_MEM_LoadUseRn));
     n_bit_register #(1)  reg6 (.clk(clk), .reset(reset), .en(wren), .data_in(LoadUseRm), .data_out(EX_MEM_LoadUseRm));
+    n_bit_register #(64) reg7 (.clk(clk), .reset(reset), .en(wren), .data_in(ID_EX_pc_plus4), .data_out(EX_MEM_pc_plus4));
 
 endmodule

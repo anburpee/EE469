@@ -1,12 +1,13 @@
-// Forwarding unit for write-use hazards, load-use hazards, and write-store hazards
-module alu_forwarding (EX_MEM_RegWrite, MEM_WB_RegWrite, EX_MEM_Rd, MEM_WB_Rd, ID_EX_Rn, ID_EX_Rm, ID_EX_RnUsed, ID_EX_RmUsed,
-                       MEM_WB_LoadUseRn, MEM_WB_LoadUseRm, ID_EX_Rd, ID_EX_MemWrite, EX_MEM_MemRead,
-                       forwardA, forwardB, forwardStore);
+// Forwarding unit for write-use hazards, load-use hazards, write-store hazards, and write-CBZ hazards
+module alu_forwarding (isCBZ, EX_MEM_RegWrite, MEM_WB_RegWrite, EX_MEM_Rd, MEM_WB_Rd, ID_EX_Rn, ID_EX_Rm, ID_EX_RnUsed, ID_EX_RmUsed,
+                       MEM_WB_LoadUseRn, MEM_WB_LoadUseRm, IF_ID_Rd, ID_EX_Rd, ID_EX_MemWrite, EX_MEM_MemRead, MEM_WB_wb,
+                       forwardA, forwardB, forwardStore, forwardZero);
 
-input logic EX_MEM_RegWrite, MEM_WB_RegWrite, ID_EX_RnUsed, ID_EX_RmUsed, MEM_WB_LoadUseRn, MEM_WB_LoadUseRm;
+input logic isCBZ, EX_MEM_RegWrite, MEM_WB_RegWrite, ID_EX_RnUsed, ID_EX_RmUsed, MEM_WB_LoadUseRn, MEM_WB_LoadUseRm;
 input logic ID_EX_MemWrite, EX_MEM_MemRead;
 input logic [4:0] EX_MEM_Rd, MEM_WB_Rd, ID_EX_Rn, ID_EX_Rm;
-input logic [4:0] ID_EX_Rd;
+input logic [4:0] IF_ID_Rd, ID_EX_Rd;
+input logic [2:0] MEM_WB_wb; // MEM_WB_wb[2] = MEM_WB_UncondBranch, MEM_WB_wb[0] = MEM_WB_RegWrite
 
 // 00 = default (no forwarding)
 // 01 = MEM/WB forwarding
@@ -19,11 +20,19 @@ output logic [1:0] forwardA, forwardB;
 // 11 = EX/MEM forwarding -- datamem output
 output logic [1:0] forwardStore;
 
+// 00 = default (comparator zero)
+// 01 = alu zero flag wire
+// 10 = flag register zero
+output logic [1:0] forwardZero;
+
+logic BL_in_WB;
+assign BL_in_WB = MEM_WB_wb[2] && MEM_WB_wb[0];
 
 always_comb begin
     forwardA = 2'b00;
     forwardB = 2'b00;
     forwardStore = 2'b00;
+    forwardZero = 2'b00;
 
     if (EX_MEM_RegWrite && (EX_MEM_Rd != 5'd31)) begin
         if ((ID_EX_Rn == EX_MEM_Rd) && ID_EX_RnUsed) begin
@@ -34,7 +43,7 @@ always_comb begin
         end
     end
     // does not execute if EX/MEM forwarding (for edge case of two back-to-back EX/MEM forwarding)
-    if (MEM_WB_RegWrite && (MEM_WB_Rd != 5'd31)) begin
+    if ((MEM_WB_RegWrite && (MEM_WB_Rd != 5'd31))) begin // BL instruction in mem/wb stage
         if ((ID_EX_Rn == MEM_WB_Rd) && ID_EX_RnUsed &&
             !((EX_MEM_RegWrite) && (EX_MEM_Rd != 5'd31) && ((ID_EX_Rn == EX_MEM_Rd)))) begin 
             forwardA = 2'b01;
@@ -42,6 +51,16 @@ always_comb begin
         if ((ID_EX_Rm == MEM_WB_Rd) && ID_EX_RmUsed &&
             !(EX_MEM_RegWrite && (EX_MEM_Rd != 5'd31) && ((ID_EX_Rm == EX_MEM_Rd)))) begin
             forwardB = 2'b01;
+        end
+    end
+
+    // for write use hazard for BL specifically (BL, then read from X30)
+    if (BL_in_WB) begin
+        if ((ID_EX_Rn == 30) && ID_EX_RnUsed) begin 
+            forwardA = 2'b11;
+        end
+        if ((ID_EX_Rm == 30) && ID_EX_RmUsed) begin 
+            forwardB = 2'b11;
         end
     end
 
@@ -67,6 +86,19 @@ always_comb begin
             forwardStore = 2'b01;
         end
     end
+
+
+    // for write-CBZ hazards
+    if (isCBZ && (ID_EX_Rd != 5'd31)) begin
+        if (ID_EX_Rd == IF_ID_Rd) begin
+            forwardZero = 2'b01;
+        end
+        else if (EX_MEM_Rd == IF_ID_Rd) begin
+            forwardZero = 2'b10;
+        end
+    end
+
+
 
 end
 endmodule

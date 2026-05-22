@@ -1,3 +1,4 @@
+`timescale 1ps/1ps
 module IF_ID_reg (clk, reset, wren, instruction, pc, pc_plus4, IF_ID_instruction, IF_ID_pc, IF_ID_pc_plus4);
 
     input logic clk, reset, wren;

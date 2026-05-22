@@ -17,7 +17,7 @@ always_comb begin
     LoadUseRn = 1'b0;
     LoadUseRm = 1'b0;
 
-    if (ID_EX_MemRead && (ID_EX_Rd != 5'd31) && ((ID_EX_Rd == IF_ID_Rn) && RnUsed || (ID_EX_Rd == IF_ID_Rm) && RmUsed)) begin
+    if (ID_EX_MemRead && (ID_EX_Rd != 5'd31) && (((ID_EX_Rd == IF_ID_Rn) && RnUsed) || ((ID_EX_Rd == IF_ID_Rm) && RmUsed))) begin
         IF_ID_write = 1'b0;
         PCWrite = 1'b0;
         FlushCntrl = 1'b1;

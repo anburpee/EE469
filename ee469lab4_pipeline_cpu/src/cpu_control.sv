@@ -8,7 +8,7 @@ module cpu_control (opcode, is_zero, is_lt, Reg2Loc, UncondBranch, MemRead, Memt
 
     always_comb begin
         // default
-        {Reg2Loc, UncondBranch, MemRead, MemtoReg, ALUOp, MemWrite, ALUSrc, RegWrite, SetFlags, isIType, Br2Reg, isBLT, isCBZ, IFFlush, RnUsed, RmUsed} = 16'b0;
+        {Reg2Loc, UncondBranch, MemRead, MemtoReg, ALUOp, MemWrite, ALUSrc, RegWrite, SetFlags, isIType, Br2Reg, isBLT, isCBZ, IFFlush, RnUsed, RmUsed} = 18'b0;
 
         casez(opcode) 
             11'b1001000100?: begin // ADDI
