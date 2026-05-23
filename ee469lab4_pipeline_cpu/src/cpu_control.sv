@@ -1,8 +1,8 @@
-module cpu_control (opcode, is_zero, is_lt, Reg2Loc, UncondBranch, MemRead, MemtoReg, 
+module cpu_control (opcode, is_zero, is_lt, LoadBR, Reg2Loc, UncondBranch, MemRead, MemtoReg, 
                     ALUOp, MemWrite, ALUSrc, RegWrite, SetFlags, isIType, Br2Reg, isBLT, isCBZ, IFFlush, RnUsed, RmUsed);
 
     input logic [10:0] opcode;
-    input logic is_zero, is_lt;
+    input logic is_zero, is_lt, LoadBR;
     output logic Reg2Loc, UncondBranch, MemRead, MemtoReg, MemWrite, ALUSrc, RegWrite, SetFlags, isIType, Br2Reg, isBLT, isCBZ, IFFlush, RnUsed, RmUsed;
     output logic [2:0] ALUOp;
 
@@ -43,7 +43,7 @@ module cpu_control (opcode, is_zero, is_lt, Reg2Loc, UncondBranch, MemRead, Memt
             end
         endcase
 
-        if ((isCBZ && is_zero) || (isBLT && is_lt) || UncondBranch || Br2Reg) begin
+        if ((isCBZ && is_zero) || (isBLT && is_lt) || UncondBranch || (Br2Reg && (!LoadBR))) begin
             IFFlush = 1'b1;
         end
 

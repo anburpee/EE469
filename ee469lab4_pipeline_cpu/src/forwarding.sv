@@ -105,9 +105,9 @@ endmodule
 
 
 // Forwarding unit for write-BR hazards and load-BR hazards
-module BR_forwarding (Br2Reg, ID_EX_RegWrite, EX_MEM_RegWrite, ID_EX_Br2Reg, EX_MEM_MemRead, IF_ID_Rd, ID_EX_Rd, EX_MEM_Rd, forwardR_Rd);
+module BR_forwarding (Br2Reg, ID_EX_RegWrite, EX_MEM_RegWrite, ID_EX_Br2Reg, ID_EX_MemRead, EX_MEM_MemRead, IF_ID_Rd, ID_EX_Rd, EX_MEM_Rd, forwardR_Rd);
 
-input logic Br2Reg, ID_EX_RegWrite, EX_MEM_RegWrite, ID_EX_Br2Reg, EX_MEM_MemRead;
+input logic Br2Reg, ID_EX_RegWrite, EX_MEM_RegWrite, ID_EX_Br2Reg, ID_EX_MemRead, EX_MEM_MemRead;
 input logic [4:0] IF_ID_Rd, ID_EX_Rd, EX_MEM_Rd;
 
 // 00 = default (no forwarding)
@@ -121,7 +121,7 @@ always_comb begin
     forwardR_Rd = 2'b00;
 
     if (Br2Reg && (IF_ID_Rd != 5'd31)) begin
-        if (ID_EX_RegWrite && (IF_ID_Rd == ID_EX_Rd)) begin // write-BR --EX
+        if (ID_EX_RegWrite && (!ID_EX_MemRead) && (IF_ID_Rd == ID_EX_Rd)) begin // write-BR --EX
             forwardR_Rd = 2'b01;
         end
         else if (EX_MEM_MemRead && ((IF_ID_Rd == EX_MEM_Rd))) begin // load-BR -- (LDUR, NOOP, BR)

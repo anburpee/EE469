@@ -27,7 +27,7 @@ module cpu_pipelined (clk, reset);
           SetFlags, isIType, Br2Reg, isBLT, isCBZ, IFFlush, RnUsed, RmUsed;
     logic [2:0] ALUOp; 
     // hazard detection ----------
-    logic  IF_ID_write, PCWrite, FlushCntrl, LoadUseRn, LoadUseRm;
+    logic  IF_ID_write, PCWrite, FlushCntrl, LoadUseRn, LoadUseRm, LoadBR;
     // forwarding unit -----------
     logic [1:0] forwardA, forwardB, forwardStore, forwardR_Rd, forwardZero;
 
@@ -41,8 +41,8 @@ module cpu_pipelined (clk, reset);
     logic [2:0] ID_EX_wb;  // {ID_EX_UncondBranch, ID_EX_MemtoReg, ID_EX_RegWrite}
     logic [1:0] ID_EX_mem; // {ID_EX_MemRead, ID_EX_MemWrite}
     logic [4:0] ID_EX_ex;  // {ID_EX_SetFlags, ID_EX_ALUSrc, ID_EX_ALUOp}
-    logic [2:0] ID_EX_hds;  // {ID_EX_Br2Reg, ID_EX_RmUsed, ID_EX_RnUsed}
-    logic [12:0] ID_EX_controls;
+    logic [3:0] ID_EX_hds;  // {ID_EX_LoadBR, ID_EX_Br2Reg, ID_EX_RmUsed, ID_EX_RnUsed}
+    logic [13:0] ID_EX_controls;
     // EX/MEM signals ----------------
     logic [63:0] EX_MEM_alu_result, EX_MEM_mem_wrData, EX_MEM_pc_plus4;
     logic [4:0] EX_MEM_Rd;
@@ -71,7 +71,7 @@ module cpu_pipelined (clk, reset);
     mux2_1 neg_mux    (.y(negative),  .x({neg_flag, flag_reg_out[3]}),      .sel(fwd_alu_flag));
     mux2_1 ovfl_mux   (.y(overflow),  .x({overflow_flag, flag_reg_out[1]}), .sel(fwd_alu_flag));
     muxnx2_1 #(64) pc_mux1 (.y(pc_mux_out1), .x({br_adder_out, pc_plus4}), .sel(pc_mux1_sel)); // PC+4 vs branch address
-    muxnx2_1 #(64) pc_mux2 (.y(pc_mux_out2), .x({R_Rd, pc_mux_out1}),  .sel(Br2Reg)); // branch address vs BR address, output directly passed into PC
+    muxnx2_1 #(64) pc_mux2 (.y(pc_mux_out2), .x({R_Rd, pc_mux_out1}),  .sel(Br2Reg || ID_EX_hds[3])); // branch address vs BR address, output directly passed into PC
 
     muxnx4_1 #(1) zero_mux (.y(zero),  .x({1'd0, flag_reg_out[2], zero_flag, comparator_zero}),  .sel(forwardZero));
     muxnx4_1 #(64) R_Rd_mux (.y(R_Rd), .x({datamem_out, EX_MEM_alu_result, alu_result, rd_data2}),  .sel(forwardR_Rd));
@@ -99,15 +99,15 @@ module cpu_pipelined (clk, reset);
     zero_extender #(12, 64) imm12 (.x(IF_ID_instruction[21:10]), .y(imm12_extended));
     muxnx2_1 #(64) imm_mux (.y(extended_imm), .x({imm12_extended, dAddr9_extended}), .sel(isIType)); // mux (0=dAddr9_extended, 1=Imm12_extended) for ALU mux input
 
-    muxnx2_1 #(13) hazard_mux (.y(ID_EX_controls), 
-                               .x({13'b0, UncondBranch, MemtoReg, RegWrite, MemRead, MemWrite, SetFlags, ALUSrc, ALUOp[2:0], Br2Reg, RmUsed, RnUsed}), 
+    muxnx2_1 #(14) hazard_mux (.y(ID_EX_controls), 
+                               .x({14'b00000000001100, UncondBranch, MemtoReg, RegWrite, MemRead, MemWrite, SetFlags, ALUSrc, ALUOp[2:0], LoadBR, Br2Reg, RmUsed, RnUsed}), 
                                .sel(FlushCntrl));
 
     ID_EX_reg ID_EX (.clk, .reset, .wren(1'b1), .readData1(rd_data1), .readData2(rd_data2), .extended_imm, 
                      .IF_ID_Rn(IF_ID_instruction[9:5]), .IF_ID_Rm(IF_ID_instruction[20:16]), .IF_ID_Rd(IF_ID_instruction[4:0]), .IF_ID_pc_plus4,
                      .ID_EX_readData1, .ID_EX_readData2, .ID_EX_extended_imm, .ID_EX_Rn, .ID_EX_Rm, .ID_EX_Rd, .ID_EX_pc_plus4,
-                     .wb(ID_EX_controls[12:10]), .mem(ID_EX_controls[9:8]), .ex(ID_EX_controls[7:3]),
-                     .hds(ID_EX_controls[2:0]), .ID_EX_wb, .ID_EX_mem, .ID_EX_ex, .ID_EX_hds);
+                     .wb(ID_EX_controls[13:11]), .mem(ID_EX_controls[10:9]), .ex(ID_EX_controls[8:4]),
+                     .hds(ID_EX_controls[3:0]), .ID_EX_wb, .ID_EX_mem, .ID_EX_ex, .ID_EX_hds);
                      
 
     // ----------------- EXECUTION (EX) ---------------------------------------------------------------------------------------
@@ -142,19 +142,19 @@ module cpu_pipelined (clk, reset);
 
 
     // ----------------- CONTROL ----------------------------------------------------------------------------------------------
-    cpu_control control (.opcode(IF_ID_instruction[31:21]), .is_zero(comparator_zero), .is_lt(neg_xor_overflow), .Reg2Loc, .UncondBranch, .MemRead, .MemtoReg, 
+    cpu_control control (.opcode(IF_ID_instruction[31:21]), .is_zero(comparator_zero), .is_lt(neg_xor_overflow), .LoadBR, .Reg2Loc, .UncondBranch, .MemRead, .MemtoReg, 
                          .ALUOp, .MemWrite, .ALUSrc, .RegWrite, .SetFlags, .isIType, .Br2Reg, .isBLT, .isCBZ, .IFFlush, .RnUsed, .RmUsed);
 
     hazard_detection hazard_detect (.IF_ID_Rn(IF_ID_instruction[9:5]), .IF_ID_Rm(IF_ID_instruction[20:16]), .IF_ID_Rd(IF_ID_instruction[4:0]),
                                     .ID_EX_Rd, .ID_EX_MemRead(ID_EX_mem[1]), .RnUsed, .RmUsed, .Br2Reg, 
-                                    .IF_ID_write, .PCWrite, .FlushCntrl, .LoadUseRn, .LoadUseRm);
+                                    .IF_ID_write, .PCWrite, .FlushCntrl, .LoadUseRn, .LoadUseRm, .LoadBR);
 
     alu_forwarding alu_forwarding  (.isCBZ, .EX_MEM_RegWrite(EX_MEM_wb[0]), .MEM_WB_RegWrite(MEM_WB_wb[0]), .EX_MEM_Rd, .MEM_WB_Rd, .ID_EX_Rn, .ID_EX_Rm,
                                     .IF_ID_Rd(IF_ID_instruction[4:0]), .ID_EX_Rd, .ID_EX_MemWrite(ID_EX_mem[0]), .EX_MEM_MemWrite(EX_MEM_mem[0]), .EX_MEM_MemRead(EX_MEM_mem[1]),
                                     .ID_EX_RmUsed(ID_EX_hds[1]), .ID_EX_RnUsed(ID_EX_hds[0]), .MEM_WB_LoadUseRn, .MEM_WB_wb,
                                     .MEM_WB_LoadUseRm, .forwardA, .forwardB, .forwardStore, .forwardZero);
-    BR_forwarding BR_forwarding    (.Br2Reg, .ID_EX_RegWrite(ID_EX_wb[0]), .EX_MEM_RegWrite(EX_MEM_wb[0]), .ID_EX_Br2Reg(ID_EX_hds[2]), .EX_MEM_MemRead(EX_MEM_mem[1]),
-                                    .IF_ID_Rd(IF_ID_instruction[4:0]), .ID_EX_Rd, .EX_MEM_Rd, .forwardR_Rd);
+    BR_forwarding BR_forwarding    (.Br2Reg, .ID_EX_RegWrite(ID_EX_wb[0]), .EX_MEM_RegWrite(EX_MEM_wb[0]), .ID_EX_Br2Reg(ID_EX_hds[2]), .ID_EX_MemRead(ID_EX_mem[1]),
+                                    .EX_MEM_MemRead(EX_MEM_mem[1]), .IF_ID_Rd(IF_ID_instruction[4:0]), .ID_EX_Rd, .EX_MEM_Rd, .forwardR_Rd);
 
 endmodule
 
@@ -201,8 +201,8 @@ module cpu_pipelined_tb();
             // $display("datamem_wrAddr: %0d, mem_wren: %0d, EX_MEM_mem_wrData: %0d", 
             //          dut.EX_MEM_alu_result, dut.EX_MEM_mem[0], $signed(dut.EX_MEM_mem_wrData));
 
-            $display("ID_EX_Br2Reg: %d, ID_EX_Rd: %0d, EX_MEM_Rd: %0d, EX_MEM_MemRead, %0d", 
-                     dut.ID_EX_hds[2], dut.ID_EX_Rd, dut.EX_MEM_Rd, dut.EX_MEM_mem[1]);
+            $display("ID_EX_Br2Reg: %d, ID_EX_Rd: %0d, EX_MEM_Rd: %0d, EX_MEM_MemRead, %0d, LoadBR: %0d, %0d, ID_EX_LoadBR: %0d", 
+                     dut.ID_EX_hds[2], dut.ID_EX_Rd, dut.EX_MEM_Rd, dut.EX_MEM_mem[1], dut.LoadBR, dut.ID_EX_controls[3], dut.ID_EX_hds[3]);
             $display("datamem_out: %0d, EX_MEM_alu_result: %0d, alu_result: %0d, rd_data2: %0d, sel: %0d",
                      dut.R_Rd_mux.x[255:192], dut.R_Rd_mux.x[191:128], dut.R_Rd_mux.x[127:64], dut.R_Rd_mux.x[63:0], 
                      dut.forwardR_Rd);

@@ -15,7 +15,7 @@ module ID_EX_reg (clk, reset, wren, readData1, readData2, extended_imm, IF_ID_Rn
     // EX -------
     input logic [4:0] ex;  // {SetFlags, ALUSrc, ALUOp}
     // HDS -------
-    input logic [2:0] hds;  // {Br2Reg, RmUsed, RnUsed}
+    input logic [3:0] hds;  // {LoadBR, Br2Reg, RmUsed, RnUsed}
 
     output logic [63:0] ID_EX_readData1, ID_EX_readData2;
     output logic [63:0] ID_EX_extended_imm;
@@ -28,7 +28,7 @@ module ID_EX_reg (clk, reset, wren, readData1, readData2, extended_imm, IF_ID_Rn
     // EX -------
     output logic [4:0] ID_EX_ex;  // {ID_EX_SetFlags, ID_EX_ALUSrc, ID_EX_ALUOp}
     // Hazard Detection Signals -------
-    output logic [2:0] ID_EX_hds;  // {ID_EX_Br2Reg, ID_EX_RmUsed, ID_EX_RnUsed}
+    output logic [3:0] ID_EX_hds;  // {ID_EX_LoadBR, ID_EX_Br2Reg, ID_EX_RmUsed, ID_EX_RnUsed}
 
 
     n_bit_register #(64) reg0 (.clk(clk), .reset(reset), .en(wren), .data_in(readData1), .data_out(ID_EX_readData1));
@@ -42,7 +42,7 @@ module ID_EX_reg (clk, reset, wren, readData1, readData2, extended_imm, IF_ID_Rn
     n_bit_register #(3)  reg6 (.clk(clk), .reset(reset), .en(wren), .data_in(wb), .data_out(ID_EX_wb));
     n_bit_register #(2)  reg7 (.clk(clk), .reset(reset), .en(wren), .data_in(mem), .data_out(ID_EX_mem));
     n_bit_register #(5)  reg8 (.clk(clk), .reset(reset), .en(wren), .data_in(ex), .data_out(ID_EX_ex));
-    n_bit_register #(3)  reg9 (.clk(clk), .reset(reset), .en(wren), .data_in(hds), .data_out(ID_EX_hds));
+    n_bit_register #(4)  reg9 (.clk(clk), .reset(reset), .en(wren), .data_in(hds), .data_out(ID_EX_hds));
 
     n_bit_register #(64) reg10 (.clk(clk), .reset(reset), .en(wren), .data_in(IF_ID_pc_plus4), .data_out(ID_EX_pc_plus4));
 
