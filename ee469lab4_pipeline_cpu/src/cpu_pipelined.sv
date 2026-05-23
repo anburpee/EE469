@@ -21,7 +21,7 @@ module cpu_pipelined (clk, reset);
     logic [63:0] mem_wrData;
     // mux sel signals -----------
     logic negative, overflow, neg_xor_overflow, cbz_and_zero, blt_and_lt; 
-    logic pc_mux1_sel, rdAddr2_sel, fwd_alu_flag; 
+    logic pc_mux1_sel, rdAddr2_sel, fwd_alu_flag, pc_mux2_sel; 
     // control signals -----------
     logic Reg2Loc, UncondBranch, MemRead, MemtoReg, MemWrite, ALUSrc, RegWrite,
           SetFlags, isIType, Br2Reg, isBLT, isCBZ, IFFlush, RnUsed, RmUsed;
@@ -71,7 +71,9 @@ module cpu_pipelined (clk, reset);
     mux2_1 neg_mux    (.y(negative),  .x({neg_flag, flag_reg_out[3]}),      .sel(fwd_alu_flag));
     mux2_1 ovfl_mux   (.y(overflow),  .x({overflow_flag, flag_reg_out[1]}), .sel(fwd_alu_flag));
     muxnx2_1 #(64) pc_mux1 (.y(pc_mux_out1), .x({br_adder_out, pc_plus4}), .sel(pc_mux1_sel)); // PC+4 vs branch address
-    muxnx2_1 #(64) pc_mux2 (.y(pc_mux_out2), .x({R_Rd, pc_mux_out1}),  .sel(Br2Reg || ID_EX_hds[3])); // branch address vs BR address, output directly passed into PC
+    or #(50) (pc_mux2_sel, Br2Reg, ID_EX_hds[3]);
+    muxnx2_1 #(64) pc_mux2 (.y(pc_mux_out2), .x({R_Rd, pc_mux_out1}),  .sel(pc_mux2_sel)); // branch address vs BR address, output directly passed into PC
+
 
     muxnx4_1 #(1) zero_mux (.y(zero),  .x({1'd0, flag_reg_out[2], zero_flag, comparator_zero}),  .sel(forwardZero));
     muxnx4_1 #(64) R_Rd_mux (.y(R_Rd), .x({datamem_out, EX_MEM_alu_result, alu_result, rd_data2}),  .sel(forwardR_Rd));
@@ -174,7 +176,7 @@ module cpu_pipelined_tb();
         forever #(CLOCK_PERIOD/2) clk <= ~clk;
     end
 
-    localparam NUM_INSTRUCTIONS = 300;
+    localparam NUM_INSTRUCTIONS = 2500;
     // stimulus
     initial begin
         reset <= 1; repeat(10) @(posedge clk);
