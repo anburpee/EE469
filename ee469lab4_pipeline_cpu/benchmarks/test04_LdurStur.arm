@@ -51,4 +51,4 @@
 11111000010_111111000_00_00011_00101   // LDUR X5, [X3, #-8]   // X5 = Mem[0] = 1
 11111000010_000000101_00_00010_00110   // LDUR X6, [X2, #5]    // X6 = Mem[8] = 2
 000101_00000000000000000000000000      // HALT:B HALT          // HALT = 0
-1001000100_000000000000_11111_11111    // ADDI X31, X31, #0    // Bogus instruction – pipelined CPU may need it
+1001000100_000000000000_11111_11111    // ADDI X31, X31, #0    // Bogus instruction ï¿½ pipelined CPU may need it
