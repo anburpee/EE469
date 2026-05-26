@@ -144,7 +144,7 @@ module cpu_pipelined (clk, reset);
 
 
     // ----------------- CONTROL ----------------------------------------------------------------------------------------------
-    cpu_control control (.opcode(IF_ID_instruction[31:21]), .is_zero(comparator_zero), .is_lt(neg_xor_overflow), .LoadBR, .Reg2Loc, .UncondBranch, .MemRead, .MemtoReg, 
+    cpu_control control (.opcode(IF_ID_instruction[31:21]), .is_zero(zero), .is_lt(neg_xor_overflow), .LoadBR, .Reg2Loc, .UncondBranch, .MemRead, .MemtoReg, 
                          .ALUOp, .MemWrite, .ALUSrc, .RegWrite, .SetFlags, .isIType, .Br2Reg, .isBLT, .isCBZ, .IFFlush, .RnUsed, .RmUsed);
 
     hazard_detection hazard_detect (.IF_ID_Rn(IF_ID_instruction[9:5]), .IF_ID_Rm(IF_ID_instruction[20:16]), .IF_ID_Rd(IF_ID_instruction[4:0]),
@@ -176,7 +176,7 @@ module cpu_pipelined_tb();
         forever #(CLOCK_PERIOD/2) clk <= ~clk;
     end
 
-    localparam NUM_INSTRUCTIONS = 2500;
+    localparam NUM_INSTRUCTIONS = 800;
     // stimulus
     initial begin
         reset <= 1; repeat(10) @(posedge clk);
@@ -215,6 +215,7 @@ module cpu_pipelined_tb();
                 $write("%0d  ", $signed(dut.reg_file.reg_out[k])); // $write doesn't include \n at the end
             end
             $display("\n");
+            $display("comparator_zero: %0d, isCBZ: %0d", dut.comparator_zero, dut.isCBZ);
             $display("zero: %0d, negative: %0d, overflow: %0d", dut.zero, dut.negative, dut.overflow);
             $display("flag register contents:");
             $display("negative: %b, zero: %b, overflow: %b, carry-out: %d",
